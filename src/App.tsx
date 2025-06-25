@@ -1,7 +1,18 @@
 import ModelViewer from './components/ModelViewer.tsx';
+import { useEffect, useState } from 'react';
 import { NavBar } from './components/NavBar.tsx';
+import { SectionTwo } from './components/SectionTwo.tsx';
+
+// Colors:
+//  Primary: #F2EFE7
+//  Second: #9ACBD0
+//  Third: #48A6A7
+//  Fourth: #006A71
+
+// logo image path: /clear-edge-high-resolution-logo-transparent.png
 
 function App() {
+  const [scrollPosition, setScrollPosition] = useState(0);
   const objectsToPaint = [
     { name: 'mesh_0', color: '#ff991f' },
     { name: 'mesh_1', color: '#ff991f' },
@@ -11,48 +22,85 @@ function App() {
     { name: 'ALLMESH', color: '#A96200' },
   ];
 
+  // Handle scroll event
+  useEffect(() => {
+    const handleScroll = () => setScrollPosition(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Transformation controls for the logo (mouse-based rotation)
+  const logoTransformControls = [
+    {
+      property: 'rotation.y' as 'rotation.y',
+      inputType: 'mouse' as 'mouse',
+      mapping: (mouse: { x: number; y: number }) => {
+        const sensitivity = 0.5;
+        const adjustedMouseX = Math.sign(mouse.x) * Math.pow(Math.abs(mouse.x), sensitivity);
+        return adjustedMouseX * (Math.PI / 6) - Math.PI / 4;
+      },
+    },
+    {
+      property: 'rotation.x' as 'rotation.x',
+      inputType: 'mouse' as 'mouse',
+      mapping: (mouse: { x: number; y: number }) => {
+        const sensitivity = 0.5;
+        const adjustedMouseY = Math.sign(mouse.y) * Math.pow(Math.abs(mouse.y), sensitivity);
+        return adjustedMouseY * (Math.PI / 6);
+      },
+    },
+  ];
+
+  // Transformation controls for the house (scroll-based rotation)
+  const houseTransformControls = [
+    {
+      property: 'rotation.y' as 'rotation.y',
+      inputType: 'scroll' as 'scroll',
+      mapping: (scrollY: number) => (scrollY / 1000) * Math.PI,
+    },
+  ];
+
   return (
     <>
-      <NavBar />
-      {/* Fixed left side with house model */}
-      <div className="fixed left-0 top-0 w-1/2 h-screen bg-gray-100">
-        <div className="w-full h-full">
-          <ModelViewer objectsToPaint={[]} objToDisplay='/low_poly_house.glb' />
-        </div>
+      {/* Fixed Navigation Bar */}
+      <NavBar className="fixed top-0 left-0 w-full z-10" />
+
+      {/* Scrollable Video Section */}
+      <div className="relative w-full h-screen">
+        <video
+          loop
+          autoPlay
+          muted
+          playsInline
+          preload="none"
+          src="/file.mp4"
+          className="w-full h-full object-cover"
+        >
+          <source
+            type="video/mp4"
+            src="/file.mp4"
+          />
+        </video>
       </div>
-      {/* Scrollable right side with logo, button, and content */}
-      <div className="ml-[50%] bg-[#593400] text-white min-h-screen">
-        <div className="p-8 flex flex-col items-center">
-          {/* Logo */}
-          <div className="w-48 h-48">
-            <ModelViewer objectsToPaint={objectsToPaint} objToDisplay='/logo.gltf' />
-          </div>
-          {/* Schedule Call button */}
-          <button className="bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-[#ff991f] mt-6 font-semibold">
-            Schedule Call
-          </button>
-        </div>
-        {/* Scrollable content sections */}
-        <section className="p-8 bg-opacity-10 bg-white">
-          <h2 className="text-3xl font-bold mb-4"> Harness the Power of the Sun </h2>
-          <p className="text-lg">
-            Discover how solar energy can transform your home with sustainable, cost-effective power.
-          </p>
-        </section>
-        <section className="p-8">
-          <h2 className="text-3xl font-bold mb-4"> Why Choose Us? </h2>
-          <p className="text-lg">
-            We provide top-tier solar solutions tailored to your needs, backed by years of expertise and a commitment to excellence.
-          </p>
-        </section>
-        <section className="p-8 bg-opacity-10 bg-white">
-          <h2 className="text-3xl font-bold mb-4"> Our Services </h2>
-          <p className="text-lg">
-            From consultation to installation and maintenance, we’re your one-stop shop for all things solar.
-          </p>
-        </section>
-        {/* Add more sections as needed */}
+
+
+      <SectionTwo />
+      
+
+      {/*
+      
+      <div className="p-4">
+        <h1 className="text-3xl font-bold">Welcome to My Website</h1>
+        <p className="mt-4">
+          This is some content below the video. As you scroll, the video will move up and out of view, while the navigation bar remains fixed at the top.
+        </p>
+        <p className="mt-4">
+          Add more content here to make the page longer and demonstrate the scrolling effect.
+        </p>
       </div>
+
+
+      */}
     </>
   );
 }
