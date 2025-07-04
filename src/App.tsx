@@ -1,107 +1,91 @@
+// src/App.tsx
+
+// STEP 1: Import 'Suspense' and 'lazy' from React.
+import { useState, Suspense, lazy } from 'react';
+
+// We still need ApiProvider for the context.
+import { ApiProvider } from './components/APIcontext.tsx';
+
+// These components are part of the initial page load, so they are imported statically.
 import ModelViewer from './components/ModelViewer.tsx';
-import { useEffect, useState } from 'react';
 import { NavBar } from './components/NavBar.tsx';
-import { SectionTwo } from './components/SectionTwo.tsx';
+import { PopupModal } from './components/PopupModal.tsx';
 
-// Colors:
-//  Primary: #F2EFE7
-//  Second: #9ACBD0
-//  Third: #48A6A7
-//  Fourth: #006A71
+// We no longer need to import the popup components statically.
+// import { GenerationLogViewer } from './components/GenerationLogViewer.tsx'; <-- Removed
+// import { InteractiveStoryUI } from './components/InteractiveStoryUI.tsx';  <-- Removed
 
-// logo image path: /clear-edge-high-resolution-logo-transparent.png
+import './styles.css';
+
+// STEP 2: Define the components that should be code-split using React.lazy().
+// This tells Vite to put them in separate files.
+// Note: The imported files ('./components/StoryGeneratorUI.tsx', etc.) must have a 'default export'.
+const StoryGeneratorUI = lazy(() => import('./components/StoryGeneratorUI.tsx'));
+const InteractiveStoryUI = lazy(() => import('./components/InteractiveStoryUI.tsx'));
+
 
 function App() {
-  const [scrollPosition, setScrollPosition] = useState(0);
-  const objectsToPaint = [
-    { name: 'mesh_0', color: '#ff991f' },
-    { name: 'mesh_1', color: '#ff991f' },
-    { name: 'mesh_2', color: '#ff991f' },
-    { name: 'mesh_3', color: '#ff991f' },
-    { name: 'mesh_4', color: '#ff991f' },
-    { name: 'ALLMESH', color: '#A96200' },
-  ];
+  const [activePopup, setActivePopup] = useState<string | null>(null);
 
-  // Handle scroll event
-  useEffect(() => {
-    const handleScroll = () => setScrollPosition(window.scrollY);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  // The StoryGeneratorUI component definition is now removed from here.
 
-  // Transformation controls for the logo (mouse-based rotation)
   const logoTransformControls = [
-    {
-      property: 'rotation.y' as 'rotation.y',
-      inputType: 'mouse' as 'mouse',
-      mapping: (mouse: { x: number; y: number }) => {
-        const sensitivity = 0.5;
-        const adjustedMouseX = Math.sign(mouse.x) * Math.pow(Math.abs(mouse.x), sensitivity);
-        return adjustedMouseX * (Math.PI / 6) - Math.PI / 4;
-      },
-    },
-    {
-      property: 'rotation.x' as 'rotation.x',
-      inputType: 'mouse' as 'mouse',
-      mapping: (mouse: { x: number; y: number }) => {
-        const sensitivity = 0.5;
-        const adjustedMouseY = Math.sign(mouse.y) * Math.pow(Math.abs(mouse.y), sensitivity);
-        return adjustedMouseY * (Math.PI / 6);
-      },
-    },
+    { property: 'rotation.x', inputType: 'mouse', mapping: () => 0 },
+    { property: 'position.x', inputType: 'mouse', mapping: () => -1.125 },
+    { property: 'position.z', inputType: 'mouse', mapping: () => -1.125 },
+    { property: 'rotation.y', inputType: 'mouse', mapping: () => -3.14 / 2 },
   ];
 
-  // Transformation controls for the house (scroll-based rotation)
-  const houseTransformControls = [
-    {
-      property: 'rotation.y' as 'rotation.y',
-      inputType: 'scroll' as 'scroll',
-      mapping: (scrollY: number) => (scrollY / 1000) * Math.PI,
-    },
-  ];
+  const handleClosePopup = () => {
+    setActivePopup(null);
+  };
+
+  const renderPopupContent = () => {
+    // This logic remains the same.
+    if (activePopup === 'story') return <StoryGeneratorUI />;
+    if (activePopup === 'interactive_story') return <InteractiveStoryUI />;
+    if (activePopup === 'future1') return <div className="p-8 text-2xl font-bold">Project "Future One" Details</div>;
+    if (activePopup === 'future2') return <div className="p-8 text-2xl font-bold">Project "Future Two" Details</div>;
+    return null;
+  };
 
   return (
-    <>
-      {/* Fixed Navigation Bar */}
+    <ApiProvider>
       <NavBar className="fixed top-0 left-0 w-full z-10" />
+      <div className="relative w-full h-screen bg-gray-200">
+        <ModelViewer
+          objectsToPaint={[            
+            { name: '1', color: '#FF5733' }, 
+            { name: '3', color: '#33FFFF' },
+            { name: '3001', color: '#2EFF40' } 
+          ]}
 
-      {/* Scrollable Video Section */}
-      <div className="relative w-full h-screen">
-        <video
-          loop
-          autoPlay
-          muted
-          playsInline
-          preload="none"
-          src="/file.mp4"
-          className="w-full h-full object-cover"
-        >
-          <source
-            type="video/mp4"
-            src="/file.mp4"
-          />
-        </video>
+          objToDisplay="/bookshelf1.glb"
+          transformControls={logoTransformControls as any}
+          onObjectClick={(object) => {
+            console.log(object.name);
+            if (object.name === '1') {
+              setActivePopup('story');
+            }
+            if (object.name === '3') {
+              setActivePopup('interactive_story');
+            }
+            if (object.name === '3001') {
+              // setActivePopup('story');
+            }
+          }}
+        />
       </div>
-
-
-      <SectionTwo />
-      
-
-      {/*
-      
-      <div className="p-4">
-        <h1 className="text-3xl font-bold">Welcome to My Website</h1>
-        <p className="mt-4">
-          This is some content below the video. As you scroll, the video will move up and out of view, while the navigation bar remains fixed at the top.
-        </p>
-        <p className="mt-4">
-          Add more content here to make the page longer and demonstrate the scrolling effect.
-        </p>
-      </div>
-
-
-      */}
-    </>
+      {activePopup && (
+        <PopupModal onClose={handleClosePopup}>
+          {/* STEP 3: Wrap the rendered content in a <Suspense> component. */}
+          {/* This shows a fallback UI (like a loading message) while the component's code is being downloaded. */}
+          <Suspense fallback={<div className="p-8 text-center text-white">Loading...</div>}>
+            {renderPopupContent()}
+          </Suspense>
+        </PopupModal>
+      )}
+    </ApiProvider>
   );
 }
 

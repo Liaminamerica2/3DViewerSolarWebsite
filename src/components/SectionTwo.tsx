@@ -1,14 +1,6 @@
 import React from 'react';
 import ModelViewer from './ModelViewer';
 
-const objectsToPaint = [
-  { name: 'mesh_0', color: '#ff991f' },
-  { name: 'mesh_1', color: '#ff991f' },
-  { name: 'mesh_2', color: '#ff991f' },
-  { name: 'mesh_3', color: '#ff991f' },
-  { name: 'mesh_4', color: '#ff991f' },
-  { name: 'ALLMESH', color: '#A96200' },
-];
 
 const logoTransformControls = [
   {
@@ -33,11 +25,10 @@ const logoTransformControls = [
 
 // Define the props interface
 interface SectionTwoProps {
-  className?: string; // Optional className prop
 }
 
 // Update the component to accept props
-export const SectionTwo: React.FC<SectionTwoProps> = ({ className }) => {
+export const SectionTwo: React.FC<SectionTwoProps> = ({  }) => {
   return (
     <div className="relative w-full h-screen">
         <div className="w-64 h-64">
